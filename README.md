@@ -1,25 +1,26 @@
 # Sistema de Ventas
 
-Aplicación web en Python para cualquier negocio: tiendas, bodegas, ferreterías, librerías, ropa, tecnología y más.
+Aplicación web en Python para administrar ventas y ofrecer compras con carrito desde el celular o computadora.
+
+## Accesos
+
+| Perfil | Enlace | Funciones |
+|---|---|---|
+| Administrador | `/admin` | Registra ventas, gestiona productos, precios, inventario y cuentas. |
+| Cliente | `/cliente` | Crea su cuenta, ve el catálogo y confirma pedidos con carrito. |
+
+El administrador también cumple la función de vendedor, por lo que no hace falta crear una cuenta de vendedor independiente.
 
 ## Funciones implementadas
 
-- Acceso con cuentas independientes para **administrador** y **usuario de ventas**.
-- Panel administrativo: indicadores, productos, inventario, cuentas y ventas recientes.
-- Usuario de ventas: acceso restringido únicamente a la caja para registrar ventas.
-- Registro de productos con código, categoría, costos, precios y existencias.
-- Carrito, descuentos, cliente y métodos de pago.
-- Validación de existencias y descuento automático de inventario.
-- Vendedor identificado en cada venta.
-- Diseño responsive para computadora y celular.
-- SQLite para desarrollo local y PostgreSQL persistente en Vercel.
-
-## Roles
-
-| Rol | Permisos |
-|---|---|
-| Administrador | Panel, productos, inventario, crear/desactivar usuarios y registrar ventas. |
-| Usuario de ventas | Iniciar sesión y registrar ventas desde el celular o computadora. |
+- Catálogo de productos, precios y control de existencias.
+- Carrito para ventas atendidas por el administrador.
+- Carrito de compras para clientes registrados.
+- Descuento automático de inventario al confirmar una venta o pedido.
+- Panel administrativo con ventas recientes.
+- Registro de clientes desde la web.
+- Diseño adaptable a celulares.
+- PostgreSQL mediante Neon para producción en Vercel.
 
 ## Ejecutar en VS Code
 
@@ -34,27 +35,19 @@ uvicorn app.main:app --reload
 
 Abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-Para desarrollo local, ingresa inicialmente con:
+Para desarrollo local, el administrador inicial es:
 
 - Usuario: `admin`
 - Contraseña: `admin123`
 
-Cambia esta contraseña creando un administrador nuevo antes de usar el sistema en un negocio.
-
 ## Despliegue en Vercel
 
-1. Fusiona el Pull Request y entra a [Vercel](https://vercel.com/new).
-2. Importa el repositorio `jhunnior-06/Sistema-de-ventas-`.
-3. Crea una base PostgreSQL administrada (por ejemplo, Neon) y copia su URL de conexión SQLAlchemy:
-   `postgresql+psycopg://usuario:contrasena@host:5432/sistema_ventas`.
-4. En **Settings → Environment Variables**, agrega:
-   - `DATABASE_URL`: la URL de PostgreSQL.
-   - `SECRET_KEY`: una cadena aleatoria larga.
-   - `ADMIN_USERNAME`: el usuario del primer administrador, por ejemplo `briam.admin`.
-   - `ADMIN_NAME`: nombre visible del administrador.
-   - `ADMIN_PASSWORD`: contraseña segura del primer administrador.
-5. Pulsa **Deploy**.
+En **Settings → Environment Variables** configura:
 
-> No uses SQLite en Vercel: el almacenamiento de las funciones no es permanente. La aplicación requiere `DATABASE_URL`, `SECRET_KEY` y `ADMIN_PASSWORD` en producción.
+- `DATABASE_URL` o las variables creadas automáticamente por Neon.
+- `SECRET_KEY`
+- `ADMIN_USERNAME`
+- `ADMIN_NAME`
+- `ADMIN_PASSWORD`
 
-El archivo `vercel.json` ya dirige todas las rutas hacia FastAPI e incluye las plantillas y archivos estáticos.
+No uses SQLite en Vercel porque el almacenamiento de las funciones no es permanente.
