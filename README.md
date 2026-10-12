@@ -12,8 +12,7 @@ Aplicación web en Python para cualquier negocio: tiendas, bodegas, ferreterías
 - Descuento automático de inventario y generación de comprobante interno por venta.
 - Historial de últimas ventas.
 - Diseño responsive para computadora y celular.
-- Base de datos SQLite para iniciar rápidamente y compatibilidad con PostgreSQL para producción.
-- Docker y archivo de despliegue para Render.
+- SQLite para desarrollo local y PostgreSQL persistente en Vercel.
 
 ## Tecnologías
 
@@ -21,7 +20,7 @@ Aplicación web en Python para cualquier negocio: tiendas, bodegas, ferreterías
 - FastAPI
 - SQLAlchemy
 - Jinja2, HTML, CSS y JavaScript
-- SQLite / PostgreSQL
+- PostgreSQL
 
 ## Ejecutar en VS Code
 
@@ -30,10 +29,7 @@ python -m venv .venv
 # Windows
 .venv\Scripts\activate
 
-# Instalar dependencias
 pip install -r requirements.txt
-
-# Ejecutar
 uvicorn app.main:app --reload
 ```
 
@@ -45,12 +41,17 @@ Abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
 2. Ingresa a **Nueva venta**, selecciona productos y confirma la operación.
 3. Vuelve al **Panel** para revisar las ventas y alertas de inventario.
 
-## Despliegue
+## Despliegue en Vercel
 
-Para producción configura la variable `DATABASE_URL` con PostgreSQL:
+1. Fusiona el Pull Request y entra a [Vercel](https://vercel.com/new).
+2. Importa el repositorio `jhunnior-06/Sistema-de-ventas-`.
+3. Crea una base PostgreSQL administrada (por ejemplo, Neon) y copia su URL de conexión SQLAlchemy:
+   `postgresql+psycopg://usuario:contrasena@host:5432/sistema_ventas`.
+4. En **Settings → Environment Variables**, agrega:
+   - `DATABASE_URL`: la URL de PostgreSQL.
+   - `SECRET_KEY`: una cadena aleatoria larga.
+5. Pulsa **Deploy**.
 
-```
-DATABASE_URL=postgresql+psycopg://usuario:contrasena@host:5432/sistema_ventas
-```
+> No uses SQLite en Vercel: el almacenamiento de las funciones no es permanente. La aplicación requiere `DATABASE_URL` en producción para que las ventas y productos no se pierdan.
 
-El repositorio incluye `Dockerfile` y `render.yaml`. En Render crea un servicio web desde GitHub, agrega `DATABASE_URL` y `SECRET_KEY`, y despliega.
+El archivo `vercel.json` ya dirige todas las rutas hacia FastAPI e incluye las plantillas y archivos estáticos.
