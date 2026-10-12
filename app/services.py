@@ -10,7 +10,7 @@ MONEY = Decimal("0.01")
 def money(value: Decimal) -> Decimal:
     return value.quantize(MONEY, rounding=ROUND_HALF_UP)
 
-def create_sale(db: Session, payload: SaleCreate) -> Sale:
+def create_sale(db: Session, payload: SaleCreate, seller_name: str) -> Sale:
     product_ids = [line.product_id for line in payload.items]
     products = {
         product.id: product
@@ -39,6 +39,7 @@ def create_sale(db: Session, payload: SaleCreate) -> Sale:
     sale = Sale(
         invoice_number=f"V-{datetime.utcnow():%Y%m%d%H%M%S%f}",
         customer_name=payload.customer_name or None,
+        seller_name=seller_name,
         payment_method=payload.payment_method,
         subtotal=subtotal,
         discount=discount,
