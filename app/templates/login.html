@@ -6,16 +6,27 @@
 </head>
 <body class="login-body">
   <main class="login-card">
-    <a class="login-brand" href="/login">Venta<span>Fácil</span></a>
-    <p class="eyebrow">ACCESO SEGURO</p><h1>Bienvenido</h1>
-    <p>Ingresa con tu cuenta de administrador o usuario de ventas.</p>
+    <a class="login-brand" href="/">Venta<span>Fácil</span></a>
+    {% if area == "customer" %}
+    <p class="eyebrow">COMPRAS EN LÍNEA</p><h1>Ingresa para comprar</h1>
+    <p>Usa tu cuenta de cliente para continuar con tu carrito.</p>
+    {% else %}
+    <p class="eyebrow">ADMINISTRACIÓN Y VENTAS</p><h1>Bienvenido</h1>
+    <p>Ingresa para vender, administrar productos y revisar el negocio.</p>
+    {% endif %}
     {% if request.query_params.get('error') %}<div class="alert error">{{ request.query_params.get('error') }}</div>{% endif %}
+    {% if request.query_params.get('ok') %}<div class="alert success">{{ request.query_params.get('ok') }}</div>{% endif %}
     <form method="post" action="/login">
-      <label>Usuario<input name="username" required autocomplete="username" autofocus placeholder="Ej. maria.ventas"></label>
+      <input type="hidden" name="area" value="{{ area }}">
+      <label>Usuario<input name="username" required autocomplete="username" autofocus placeholder="Ej. maria.compras"></label>
       <label>Contraseña<input name="password" type="password" required autocomplete="current-password" placeholder="Tu contraseña"></label>
-      <button class="button primary full" type="submit">Ingresar al sistema</button>
+      <button class="button primary full" type="submit">Ingresar</button>
     </form>
-    <small class="login-help">El administrador crea las cuentas de los usuarios de ventas.</small>
+    {% if area == "customer" %}
+    <small class="login-help">¿Aún no tienes cuenta? <a href="/registro">Crear cuenta de cliente</a></small>
+    {% else %}
+    <small class="login-help"><a href="/cliente">Soy cliente, quiero comprar</a></small>
+    {% endif %}
   </main>
 </body>
 </html>
