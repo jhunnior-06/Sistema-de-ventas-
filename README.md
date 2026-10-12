@@ -1,34 +1,56 @@
 # Sistema de Ventas
 
-Aplicación web para gestionar productos, inventario y ventas de cualquier tipo de negocio.
+Aplicación web en Python para cualquier negocio: tiendas, bodegas, ferreterías, librerías, ropa, tecnología y más.
 
-## Incluye
-- Panel con indicadores de ventas e inventario.
-- Catálogo de productos: crear, editar, activar/desactivar y eliminar.
-- Registro de ventas con carrito y descuentos.
-- Actualización automática de stock y alerta de existencias bajas.
-- Historial reciente de ventas.
-- Base de datos SQLite para empezar sin configuración; PostgreSQL lista para producción mediante `DATABASE_URL`.
-- Dockerfile y configuración para Render.
+## Funciones implementadas
 
-## Ejecutar localmente
+- Panel principal con ventas del día, productos activos y alerta de stock mínimo.
+- Registro de productos con código, categoría, costos, precios y existencias.
+- Activación y desactivación de productos sin perder su historial.
+- Pantalla de caja con carrito, cantidad, descuento, cliente y método de pago.
+- Validación de existencias: una venta nunca puede dejar el stock en negativo.
+- Descuento automático de inventario y generación de comprobante interno por venta.
+- Historial de últimas ventas.
+- Diseño responsive para computadora y celular.
+- Base de datos SQLite para iniciar rápidamente y compatibilidad con PostgreSQL para producción.
+- Docker y archivo de despliegue para Render.
+
+## Tecnologías
+
+- Python 3.12
+- FastAPI
+- SQLAlchemy
+- Jinja2, HTML, CSS y JavaScript
+- SQLite / PostgreSQL
+
+## Ejecutar en VS Code
 
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
+
+# Instalar dependencias
 pip install -r requirements.txt
+
+# Ejecutar
 uvicorn app.main:app --reload
 ```
 
-Abre http://127.0.0.1:8000.
+Abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+## Primer uso
+
+1. Ingresa a **Productos** y registra al menos un producto con stock mayor a cero.
+2. Ingresa a **Nueva venta**, selecciona productos y confirma la operación.
+3. Vuelve al **Panel** para revisar las ventas y alertas de inventario.
 
 ## Despliegue
 
-Configura `DATABASE_URL` en tu plataforma. Para producción usa PostgreSQL y una variable como:
+Para producción configura la variable `DATABASE_URL` con PostgreSQL:
 
 ```
-postgresql+psycopg://usuario:contrasena@host:5432/sistema_ventas
+DATABASE_URL=postgresql+psycopg://usuario:contrasena@host:5432/sistema_ventas
 ```
 
-En Render, crea un servicio web desde este repositorio. El archivo `render.yaml` contiene el comando de inicio.
+El repositorio incluye `Dockerfile` y `render.yaml`. En Render crea un servicio web desde GitHub, agrega `DATABASE_URL` y `SECRET_KEY`, y despliega.
