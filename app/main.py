@@ -44,6 +44,15 @@ def login_redirect(area: str | None = None) -> RedirectResponse:
     return RedirectResponse(f"/login{suffix}", status_code=303)
 
 
+def access_area_for_host(request: Request) -> str | None:
+    hostname = (request.url.hostname or "").lower()
+    if hostname.startswith("admin."):
+        return "admin"
+    if hostname.startswith("tienda."):
+        return "customer"
+    return None
+
+
 def home_for(user: User) -> str:
     return "/comprar" if user.role == "customer" else "/"
 
@@ -167,6 +176,9 @@ def logout(request: Request):
 def dashboard(request: Request, db: Session = Depends(get_db)):
     current_user = session_user(request, db)
     if not current_user:
+        area = access_area_for_host(request)
+        if area:
+            return login_redirect(area)
         return templates.TemplateResponse("access.html", {"request": request})
     if current_user.role == "customer":
         return RedirectResponse("/comprar", status_code=303)
