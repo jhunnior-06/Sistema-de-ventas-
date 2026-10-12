@@ -165,9 +165,13 @@ def logout(request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request, db: Session = Depends(get_db)):
-    current_user = admin_or_redirect(request, db)
-    if isinstance(current_user, RedirectResponse):
-        return current_user
+    current_user = session_user(request, db)
+    if not current_user:
+        return templates.TemplateResponse("access.html", {"request": request})
+    if current_user.role == "customer":
+        return RedirectResponse("/comprar", status_code=303)
+    if current_user.role != "admin":
+        return RedirectResponse("/ventas", status_code=303)
     today_start = datetime.combine(datetime.utcnow().date(), time.min)
     sales_today = db.scalar(select(func.coalesce(func.sum(Sale.total), 0)).where(Sale.created_at >= today_start))
     low_stock = db.scalar(select(func.count(Product.id)).where(Product.active.is_(True), Product.stock <= Product.min_stock))
