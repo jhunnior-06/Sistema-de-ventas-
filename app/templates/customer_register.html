@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crear cuenta | VentaFácil</title><link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="login-body">
+  <main class="login-card">
+    <a class="login-brand" href="/cliente">Venta<span>Fácil</span></a>
+    <p class="eyebrow">COMPRAS EN LÍNEA</p><h1>Crea tu cuenta</h1>
+    <p>Regístrate una sola vez para usar el carrito y realizar tus pedidos.</p>
+    {% if request.query_params.get('error') %}<div class="alert error">{{ request.query_params.get('error') }}</div>{% endif %}
+    <form method="post" action="/registro">
+      <label>Nombre completo<input name="display_name" required maxlength="160" autocomplete="name" placeholder="Ej. María Quispe"></label>
+      <label>Usuario<input name="username" required minlength="3" maxlength="60" autocomplete="username" placeholder="Ej. maria.qusipe"></label>
+      <label>Contraseña<input name="password" type="password" required minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></label>
+      <button class="button primary full" type="submit">Crear cuenta y comprar</button>
+    </form>
+    <small class="login-help">¿Ya tienes cuenta? <a href="/cliente">Ingresar como cliente</a></small>
+  </main>
+</body>
+</html>
