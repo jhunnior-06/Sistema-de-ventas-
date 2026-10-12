@@ -2,11 +2,15 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+    # Neon suele entregar esta variante; SQLAlchemy usará psycopg v3.
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 if not DATABASE_URL:
     if os.getenv("VERCEL"):
         raise RuntimeError(
-            "Debes configurar DATABASE_URL en Vercel con una base PostgreSQL."
+            "Conecta Neon en Vercel o configura DATABASE_URL para PostgreSQL."
         )
     DATABASE_URL = "sqlite:///./ventas.db"
 
