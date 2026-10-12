@@ -225,6 +225,53 @@ def toggle_product(product_id: int, request: Request, db: Session = Depends(get_
     db.commit()
     return RedirectResponse("/productos?ok=Estado actualizado", status_code=303)
 
+@app.post("/productos/{product_id}/editar")
+def update_product(
+    product_id: int, request: Request, name: str = Form(...), sale_price: Decimal = Form(...),
+    stock: int = Form(...), code: str | None = Form(None), description: str | None = Form(None),
+    category: str | None = Form(None), cost_price: Decimal = Form(0),
+    min_stock: int = Form(5), db: Session = Depends(get_db)
+):
+    current_user = admin_or_redirect(request, db)
+    if isinstance(current_user, RedirectResponse):
+        return current_user
+    product = db.get(Product, product_id)
+    if not product:
+        raise HTTPException(404, "Producto no encontrado")
+    if sale_price < 0 or cost_price < 0 or stock < 0 or min_stock < 0:
+        return RedirectResponse("/productos?error=Los valores no pueden ser negativos", status_code=303)
+    clean_code = code.strip() if code else None
+    if clean_code and db.scalar(select(Product).where(Product.code == clean_code, Product.id != product_id)):
+        return RedirectResponse("/productos?error=El código ya está registrado", status_code=303)
+    product.name = name.strip()
+    product.code = clean_code
+    product.description = description.strip() if description else None
+    product.category = category.strip() if category else None
+    product.sale_price = sale_price
+    product.cost_price = cost_price
+    product.stock = stock
+    product.min_stock = min_stock
+    db.commit()
+    return RedirectResponse("/productos?ok=Producto actualizado", status_code=303)
+
+
+@app.post("/productos/{product_id}/eliminar")
+def delete_product(product_id: int, request: Request, db: Session = Depends(get_db)):
+    current_user = admin_or_redirect(request, db)
+    if isinstance(current_user, RedirectResponse):
+        return current_user
+    product = db.get(Product, product_id)
+    if not product:
+        raise HTTPException(404, "Producto no encontrado")
+    if product.sale_items:
+        product.active = False
+        db.commit()
+        return RedirectResponse("/productos?ok=Producto desactivado para conservar el historial de ventas", status_code=303)
+    db.delete(product)
+    db.commit()
+    return RedirectResponse("/productos?ok=Producto eliminado", status_code=303)
+
+
 @app.get("/usuarios", response_class=HTMLResponse)
 def users_page(request: Request, db: Session = Depends(get_db)):
     current_user = admin_or_redirect(request, db)
@@ -270,6 +317,21 @@ def toggle_user(user_id: int, request: Request, db: Session = Depends(get_db)):
     user.active = not user.active
     db.commit()
     return RedirectResponse("/usuarios?ok=Estado actualizado", status_code=303)
+
+@app.post("/usuarios/{user_id}/eliminar")
+def delete_user(user_id: int, request: Request, db: Session = Depends(get_db)):
+    current_user = admin_or_redirect(request, db)
+    if isinstance(current_user, RedirectResponse):
+        return current_user
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(404, "Usuario no encontrado")
+    if user.id == current_user.id:
+        return RedirectResponse("/usuarios?error=No puedes eliminar tu propia cuenta", status_code=303)
+    db.delete(user)
+    db.commit()
+    return RedirectResponse("/usuarios?ok=Cuenta eliminada", status_code=303)
+
 
 @app.get("/ventas", response_class=HTMLResponse)
 def sales_page(request: Request, db: Session = Depends(get_db)):
