@@ -106,17 +106,24 @@ def startup() -> None:
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
-@app.get("/admin")
-def admin_access():
-    return RedirectResponse("/login?area=admin", status_code=303)
+@app.get("/admin", response_class=HTMLResponse)
+def admin_access(request: Request, db: Session = Depends(get_db)):
+    user = session_user(request, db)
+    if user and user.role == "admin":
+        return RedirectResponse("/", status_code=303)
+    if user and user.role == "customer":
+        return RedirectResponse("/comprar", status_code=303)
+    return templates.TemplateResponse("access.html", {"request": request, "area": "admin"})
 
 
-@app.get("/cliente")
+@app.get("/cliente", response_class=HTMLResponse)
 def customer_access(request: Request, db: Session = Depends(get_db)):
     user = session_user(request, db)
     if user and user.role == "customer":
         return RedirectResponse("/comprar", status_code=303)
-    return RedirectResponse("/login?area=customer", status_code=303)
+    if user:
+        return RedirectResponse("/", status_code=303)
+    return templates.TemplateResponse("access.html", {"request": request, "area": "customer"})
 
 
 @app.get("/login", response_class=HTMLResponse)
