@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión | VentaFácil</title><link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="login-body">
+  <main class="login-card">
+    <a class="login-brand" href="/login">Venta<span>Fácil</span></a>
+    <p class="eyebrow">ACCESO SEGURO</p><h1>Bienvenido</h1>
+    <p>Ingresa con tu cuenta de administrador o usuario de ventas.</p>
+    {% if request.query_params.get('error') %}<div class="alert error">{{ request.query_params.get('error') }}</div>{% endif %}
+    <form method="post" action="/login">
+      <label>Usuario<input name="username" required autocomplete="username" autofocus placeholder="Ej. maria.ventas"></label>
+      <label>Contraseña<input name="password" type="password" required autocomplete="current-password" placeholder="Tu contraseña"></label>
+      <button class="button primary full" type="submit">Ingresar al sistema</button>
+    </form>
+    <small class="login-help">El administrador crea las cuentas de los usuarios de ventas.</small>
+  </main>
+</body>
+</html>
