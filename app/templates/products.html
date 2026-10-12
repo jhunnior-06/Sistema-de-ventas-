@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Productos | Sistema de Ventas{% endblock %}
+{% block heading %}Productos e inventario{% endblock %}
+{% block content %}
+<section class="two-columns">
+<form class="panel form-panel" method="post" action="/productos">
+  <div class="section-title"><div><h2>Nuevo producto</h2><p>Los campos con * son obligatorios.</p></div></div>
+  <label>Nombre *<input name="name" required maxlength="160" placeholder="Ej. Polo deportivo"></label>
+  <div class="grid-2"><label>Código<input name="code" maxlength="60" placeholder="SKU-001"></label><label>Categoría<input name="category" maxlength="100" placeholder="Ropa"></label></div>
+  <label>Descripción<textarea name="description" rows="2" placeholder="Detalle opcional"></textarea></label>
+  <div class="grid-2"><label>Precio de venta (S/) *<input name="sale_price" type="number" min="0" step="0.01" required></label><label>Precio de compra (S/)<input name="cost_price" type="number" min="0" step="0.01" value="0"></label></div>
+  <div class="grid-2"><label>Stock inicial *<input name="stock" type="number" min="0" value="0" required></label><label>Stock mínimo<input name="min_stock" type="number" min="0" value="5"></label></div>
+  <button class="button primary full" type="submit">Guardar producto</button>
+</form>
+<section class="panel">
+  <div class="section-title"><div><h2>Catálogo</h2><p>{{ products|length }} productos registrados.</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody>
+  {% for product in products %}<tr>
+    <td><b>{{ product.name }}</b><small>{{ product.code or 'Sin código' }}{% if product.category %} · {{ product.category }}{% endif %}</small></td>
+    <td>{{ product.sale_price|currency }}</td>
+    <td class="{% if product.stock <= product.min_stock %}stock-low{% endif %}">{{ product.stock }} uds.</td>
+    <td><span class="badge {% if product.active %}badge-green{% else %}badge-gray{% endif %}">{% if product.active %}Activo{% else %}Inactivo{% endif %}</span></td>
+    <td><form method="post" action="/productos/{{ product.id }}/estado"><button class="link-button" type="submit">{% if product.active %}Desactivar{% else %}Activar{% endif %}</button></form></td>
+  </tr>{% else %}<tr><td colspan="5" class="muted">Agrega tu primer producto desde el formulario.</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+</section>
+{% endblock %}

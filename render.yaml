@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: sistema-ventas-python
+    runtime: docker
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
