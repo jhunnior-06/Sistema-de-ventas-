@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comprar | VentaFácil</title><link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="shop-body">
+  <header class="shop-header">
+    <a class="login-brand" href="/comprar">Venta<span>Fácil</span></a>
+    <div><span class="shop-user">Hola, {{ current_user.display_name }}</span><form method="post" action="/salir"><button class="link-button" type="submit">Salir</button></form></div>
+  </header>
+  <main class="shop-content">
+    <section>
+      <p class="eyebrow">CATÁLOGO</p><h1>Elige tus productos</h1><p class="shop-intro">Agrega al carrito y confirma tu pedido.</p>
+      <div id="product-list" class="product-list">
+        {% for product in products %}<button type="button" class="product-card" data-id="{{ product.id }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}" data-stock="{{ product.stock }}"><b>{{ product.name }}</b>{% if product.category %}<small>{{ product.category }}</small>{% endif %}<span>{{ product.sale_price|currency }}</span><small>{{ product.stock }} disponibles</small></button>{% else %}<p class="muted">No hay productos disponibles por ahora.</p>{% endfor %}
+      </div>
+    </section>
+    <aside class="panel checkout">
+      <h2>Mi carrito</h2><div id="cart-items" class="cart-items"><p class="muted">Aún no agregaste productos.</p></div>
+      <div class="totals"><div><span>Total</span><strong id="total">S/ 0.00</strong></div></div>
+      <p id="sale-message" class="sale-message"></p>
+      <button id="confirm-sale" class="button primary full" type="button">Confirmar pedido</button>
+      <small class="shop-note">El administrador confirmará la entrega y el pago.</small>
+    </aside>
+  </main>
+  <script src="/static/js/shop.js"></script>
+</body>
+</html>
