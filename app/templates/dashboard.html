@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Panel | Sistema de Ventas{% endblock %}
+{% block heading %}Resumen del negocio{% endblock %}
+{% block content %}
+<section class="stats">
+  <article><span>Ventas de hoy</span><strong>{{ sales_today|currency }}</strong><small>Facturación registrada hoy</small></article>
+  <article><span>Productos activos</span><strong>{{ product_count }}</strong><small>Disponibles en catálogo</small></article>
+  <article class="{% if low_stock %}warning{% endif %}"><span>Stock por revisar</span><strong>{{ low_stock }}</strong><small>Productos en mínimo o menos</small></article>
+</section>
+<section class="panel">
+  <div class="section-title"><div><h2>Ventas recientes</h2><p>Últimas operaciones registradas.</p></div><a href="/ventas">Ir a caja →</a></div>
+  {% if recent_sales %}
+  <div class="table-wrap"><table><thead><tr><th>Comprobante</th><th>Cliente</th><th>Pago</th><th>Fecha</th><th>Total</th></tr></thead>
+  <tbody>{% for sale in recent_sales %}<tr><td><b>{{ sale.invoice_number }}</b></td><td>{{ sale.customer_name or 'Venta general' }}</td><td>{{ sale.payment_method }}</td><td>{{ sale.created_at.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ sale.total|currency }}</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<div class="empty"><h3>Aún no hay ventas</h3><p>Registra tu primera operación para ver el resumen aquí.</p><a class="button primary" href="/ventas">Registrar venta</a></div>{% endif %}
+</section>
+{% endblock %}
