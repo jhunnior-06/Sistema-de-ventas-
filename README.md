@@ -4,23 +4,22 @@ Aplicación web en Python para cualquier negocio: tiendas, bodegas, ferreterías
 
 ## Funciones implementadas
 
-- Panel principal con ventas del día, productos activos y alerta de stock mínimo.
+- Acceso con cuentas independientes para **administrador** y **usuario de ventas**.
+- Panel administrativo: indicadores, productos, inventario, cuentas y ventas recientes.
+- Usuario de ventas: acceso restringido únicamente a la caja para registrar ventas.
 - Registro de productos con código, categoría, costos, precios y existencias.
-- Activación y desactivación de productos sin perder su historial.
-- Pantalla de caja con carrito, cantidad, descuento, cliente y método de pago.
-- Validación de existencias: una venta nunca puede dejar el stock en negativo.
-- Descuento automático de inventario y generación de comprobante interno por venta.
-- Historial de últimas ventas.
+- Carrito, descuentos, cliente y métodos de pago.
+- Validación de existencias y descuento automático de inventario.
+- Vendedor identificado en cada venta.
 - Diseño responsive para computadora y celular.
 - SQLite para desarrollo local y PostgreSQL persistente en Vercel.
 
-## Tecnologías
+## Roles
 
-- Python 3.12
-- FastAPI
-- SQLAlchemy
-- Jinja2, HTML, CSS y JavaScript
-- PostgreSQL
+| Rol | Permisos |
+|---|---|
+| Administrador | Panel, productos, inventario, crear/desactivar usuarios y registrar ventas. |
+| Usuario de ventas | Iniciar sesión y registrar ventas desde el celular o computadora. |
 
 ## Ejecutar en VS Code
 
@@ -35,11 +34,12 @@ uvicorn app.main:app --reload
 
 Abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-## Primer uso
+Para desarrollo local, ingresa inicialmente con:
 
-1. Ingresa a **Productos** y registra al menos un producto con stock mayor a cero.
-2. Ingresa a **Nueva venta**, selecciona productos y confirma la operación.
-3. Vuelve al **Panel** para revisar las ventas y alertas de inventario.
+- Usuario: `admin`
+- Contraseña: `admin123`
+
+Cambia esta contraseña creando un administrador nuevo antes de usar el sistema en un negocio.
 
 ## Despliegue en Vercel
 
@@ -50,8 +50,11 @@ Abre [http://127.0.0.1:8000](http://127.0.0.1:8000).
 4. En **Settings → Environment Variables**, agrega:
    - `DATABASE_URL`: la URL de PostgreSQL.
    - `SECRET_KEY`: una cadena aleatoria larga.
+   - `ADMIN_USERNAME`: el usuario del primer administrador, por ejemplo `briam.admin`.
+   - `ADMIN_NAME`: nombre visible del administrador.
+   - `ADMIN_PASSWORD`: contraseña segura del primer administrador.
 5. Pulsa **Deploy**.
 
-> No uses SQLite en Vercel: el almacenamiento de las funciones no es permanente. La aplicación requiere `DATABASE_URL` en producción para que las ventas y productos no se pierdan.
+> No uses SQLite en Vercel: el almacenamiento de las funciones no es permanente. La aplicación requiere `DATABASE_URL`, `SECRET_KEY` y `ADMIN_PASSWORD` en producción.
 
 El archivo `vercel.json` ya dirige todas las rutas hacia FastAPI e incluye las plantillas y archivos estáticos.
