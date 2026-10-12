@@ -2,17 +2,33 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VentaFácil</title><link rel="stylesheet" href="/static/css/app.css">
+  <title>{% if area == "admin" %}Acceso administrativo{% elif area == "customer" %}Comprar productos{% else %}VentaFácil{% endif %}</title><link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body class="access-body">
   <main class="access-card">
     <a class="login-brand" href="/">Venta<span>Fácil</span></a>
-    <p class="eyebrow">SISTEMA DE VENTAS</p><h1>¿Cómo deseas ingresar?</h1>
-    <p>Selecciona el acceso adecuado para continuar.</p>
-    <div class="access-options">
-      <a class="access-option admin-option" href="/admin"><b>Administrador</b><span>Vende, registra productos, precios e inventario.</span><em>Ingresar como administrador →</em></a>
-      <a class="access-option customer-option" href="/cliente"><b>Cliente</b><span>Explora el catálogo y compra con carrito.</span><em>Comprar productos →</em></a>
-    </div>
+    <p class="eyebrow">SISTEMA DE VENTAS</p>
+    {% if area == "admin" %}
+      <h1>Acceso de administrador</h1>
+      <p>Gestiona productos, precios, inventario, ventas y cuentas.</p>
+      <div class="access-options">
+        <a class="access-option admin-option" href="/login?area=admin"><b>Administrador</b><span>Ingresa para administrar tu negocio.</span><em>Ingresar como administrador →</em></a>
+      </div>
+    {% elif area == "customer" %}
+      <h1>Compra productos</h1>
+      <p>Explora el catálogo y compra de forma sencilla con tu carrito.</p>
+      <div class="access-options">
+        <a class="access-option customer-option" href="/login?area=customer"><b>Cliente</b><span>Ingresa o crea tu cuenta para comprar.</span><em>Ingresar como cliente →</em></a>
+      </div>
+      <p class="muted">¿Aún no tienes cuenta? <a href="/registro">Regístrate aquí</a>.</p>
+    {% else %}
+      <h1>¿Cómo deseas ingresar?</h1>
+      <p>Selecciona el acceso adecuado para continuar.</p>
+      <div class="access-options">
+        <a class="access-option admin-option" href="/admin"><b>Administrador</b><span>Vende, registra productos, precios e inventario.</span><em>Ingresar como administrador →</em></a>
+        <a class="access-option customer-option" href="/cliente"><b>Cliente</b><span>Explora el catálogo y compra con carrito.</span><em>Comprar productos →</em></a>
+      </div>
+    {% endif %}
   </main>
 </body>
 </html>
