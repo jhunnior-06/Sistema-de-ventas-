@@ -39,21 +39,41 @@ def session_user(request: Request, db: Session) -> User | None:
         return None
     return user
 
-def login_redirect() -> RedirectResponse:
-    return RedirectResponse("/login", status_code=303)
+def login_redirect(area: str | None = None) -> RedirectResponse:
+    suffix = f"?area={area}" if area else ""
+    return RedirectResponse(f"/login{suffix}", status_code=303)
+
+
+def home_for(user: User) -> str:
+    return "/comprar" if user.role == "customer" else "/"
+
 
 def admin_or_redirect(request: Request, db: Session) -> User | RedirectResponse:
     user = session_user(request, db)
     if not user:
-        return login_redirect()
+        return login_redirect("admin")
+    if user.role == "customer":
+        return RedirectResponse("/comprar", status_code=303)
     if user.role != "admin":
         return RedirectResponse("/ventas", status_code=303)
     return user
 
-def require_api_user(request: Request, db: Session) -> User:
+
+def customer_or_redirect(request: Request, db: Session) -> User | RedirectResponse:
+    user = session_user(request, db)
+    if not user:
+        return login_redirect("customer")
+    if user.role != "customer":
+        return RedirectResponse(home_for(user), status_code=303)
+    return user
+
+
+def require_sale_user(request: Request, db: Session) -> User:
     user = session_user(request, db)
     if not user:
         raise HTTPException(401, "Inicia sesión para continuar.")
+    if user.role == "customer":
+        raise HTTPException(403, "Los clientes no pueden registrar ventas.")
     return user
 
 def create_initial_admin() -> None:
@@ -77,24 +97,66 @@ def startup() -> None:
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
+@app.get("/admin")
+def admin_access():
+    return RedirectResponse("/login?area=admin", status_code=303)
+
+
+@app.get("/cliente")
+def customer_access(request: Request, db: Session = Depends(get_db)):
+    user = session_user(request, db)
+    if user and user.role == "customer":
+        return RedirectResponse("/comprar", status_code=303)
+    return RedirectResponse("/login?area=customer", status_code=303)
+
+
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request, db: Session = Depends(get_db)):
     user = session_user(request, db)
     if user:
-        return RedirectResponse("/" if user.role == "admin" else "/ventas", status_code=303)
-    return templates.TemplateResponse("login.html", {"request": request})
+        return RedirectResponse(home_for(user), status_code=303)
+    area = request.query_params.get("area", "admin")
+    return templates.TemplateResponse("login.html", {"request": request, "area": area})
+
 
 @app.post("/login")
 def login(
     request: Request, username: str = Form(...), password: str = Form(...),
-    db: Session = Depends(get_db)
+    area: str | None = Form(None), db: Session = Depends(get_db)
 ):
     user = db.scalar(select(User).where(User.username == username.strip().lower()))
     if not user or not user.active or not verify_password(password, user.password_hash):
-        return RedirectResponse("/login?error=Credenciales incorrectas", status_code=303)
+        return RedirectResponse(f"/login?area={area or 'admin'}&error=Credenciales incorrectas", status_code=303)
+    if area == "admin" and user.role != "admin":
+        return RedirectResponse("/login?area=admin&error=Esta cuenta no es de administrador", status_code=303)
+    if area == "customer" and user.role != "customer":
+        return RedirectResponse("/login?area=customer&error=Usa el acceso de administrador", status_code=303)
     request.session.clear()
     request.session["user_id"] = user.id
-    return RedirectResponse("/" if user.role == "admin" else "/ventas", status_code=303)
+    return RedirectResponse(home_for(user), status_code=303)
+
+
+@app.get("/registro", response_class=HTMLResponse)
+def customer_register_page(request: Request):
+    return templates.TemplateResponse("customer_register.html", {"request": request})
+
+
+@app.post("/registro")
+def customer_register(
+    display_name: str = Form(...), username: str = Form(...), password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    username = username.strip().lower()
+    if len(username) < 3 or not username.replace("_", "").replace(".", "").isalnum():
+        return RedirectResponse("/registro?error=El usuario solo admite letras, números, punto o guion bajo", status_code=303)
+    if len(password) < 8:
+        return RedirectResponse("/registro?error=La contraseña debe tener al menos 8 caracteres", status_code=303)
+    if db.scalar(select(User).where(User.username == username)):
+        return RedirectResponse("/registro?error=El usuario ya existe", status_code=303)
+    db.add(User(display_name=display_name.strip(), username=username,
+                password_hash=hash_password(password), role="customer"))
+    db.commit()
+    return RedirectResponse("/login?area=customer&ok=Cuenta creada. Ahora inicia sesión.", status_code=303)
 
 @app.post("/salir")
 def logout(request: Request):
@@ -182,7 +244,7 @@ def create_user(
         return RedirectResponse("/usuarios?error=Usuario inválido", status_code=303)
     if len(password) < 8:
         return RedirectResponse("/usuarios?error=La contraseña debe tener al menos 8 caracteres", status_code=303)
-    if role not in {"admin", "user"}:
+    if role not in {"admin", "user", "customer"}:
         return RedirectResponse("/usuarios?error=Rol inválido", status_code=303)
     if db.scalar(select(User).where(User.username == username)):
         return RedirectResponse("/usuarios?error=El usuario ya existe", status_code=303)
@@ -207,9 +269,7 @@ def toggle_user(user_id: int, request: Request, db: Session = Depends(get_db)):
 
 @app.get("/ventas", response_class=HTMLResponse)
 def sales_page(request: Request, db: Session = Depends(get_db)):
-    current_user = session_user(request, db)
-    if not current_user:
-        return login_redirect()
+    current_user = require_sale_user(request, db)
     products = db.scalars(select(Product).where(Product.active.is_(True), Product.stock > 0).order_by(Product.name)).all()
     return templates.TemplateResponse("sales.html", {
         "request": request, "current_user": current_user, "products": products,
@@ -217,7 +277,7 @@ def sales_page(request: Request, db: Session = Depends(get_db)):
 
 @app.post("/api/ventas")
 def register_sale(request: Request, payload: SaleCreate, db: Session = Depends(get_db)):
-    current_user = require_api_user(request, db)
+    current_user = require_sale_user(request, db)
     try:
         sale = create_sale(db, payload, current_user.display_name)
     except ValueError as error:
@@ -226,13 +286,13 @@ def register_sale(request: Request, payload: SaleCreate, db: Session = Depends(g
 
 @app.get("/api/productos")
 def product_api(request: Request, db: Session = Depends(get_db)):
-    require_api_user(request, db)
+    require_sale_user(request, db)
     products = db.scalars(select(Product).where(Product.active.is_(True), Product.stock > 0).order_by(Product.name)).all()
     return [{"id": p.id, "name": p.name, "sale_price": float(p.sale_price), "stock": p.stock} for p in products]
 
 @app.get("/api/ventas-recientes")
 def recent_sales_api(request: Request, db: Session = Depends(get_db)):
-    current_user = require_api_user(request, db)
+    current_user = require_sale_user(request, db)
     if current_user.role != "admin":
         raise HTTPException(403, "Solo el administrador puede consultar el historial.")
     sales = db.scalars(select(Sale).options(selectinload(Sale.items)).order_by(Sale.created_at.desc()).limit(30)).all()
@@ -242,3 +302,37 @@ def recent_sales_api(request: Request, db: Session = Depends(get_db)):
         "total": float(sale.total), "created_at": sale.created_at.isoformat(),
         "items": [{"product": item.product_name, "quantity": item.quantity} for item in sale.items],
     } for sale in sales]
+
+
+@app.get("/comprar", response_class=HTMLResponse)
+def shop_page(request: Request, db: Session = Depends(get_db)):
+    current_user = customer_or_redirect(request, db)
+    if isinstance(current_user, RedirectResponse):
+        return current_user
+    products = db.scalars(
+        select(Product).where(Product.active.is_(True), Product.stock > 0).order_by(Product.name)
+    ).all()
+    return templates.TemplateResponse("shop.html", {
+        "request": request, "current_user": current_user, "products": products,
+    })
+
+
+@app.post("/api/compras")
+def create_customer_purchase(
+    request: Request, payload: SaleCreate, db: Session = Depends(get_db)
+):
+    current_user = customer_or_redirect(request, db)
+    if isinstance(current_user, RedirectResponse):
+        raise HTTPException(401, "Inicia sesión como cliente para comprar.")
+    payload.customer_name = current_user.display_name
+    payload.discount = Decimal("0")
+    payload.payment_method = "Pedido web"
+    try:
+        sale = create_sale(db, payload, "Compra web")
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+    return {
+        "message": "Pedido recibido correctamente.",
+        "invoice_number": sale.invoice_number,
+        "total": float(sale.total),
+    }
