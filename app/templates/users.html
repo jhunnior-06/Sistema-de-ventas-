@@ -8,7 +8,7 @@
   <label>Nombre completo *<input name="display_name" required maxlength="160" placeholder="Ej. María Quispe"></label>
   <label>Usuario *<input name="username" required minlength="3" maxlength="60" placeholder="maria.ventas"></label>
   <label>Contraseña *<input name="password" type="password" required minlength="8" placeholder="Mínimo 8 caracteres"></label>
-  <label>Rol<select name="role"><option value="user">Usuario de ventas</option><option value="admin">Administrador</option></select></label>
+  <label>Rol<select name="role"><option value="customer">Cliente</option><option value="admin">Administrador</option></select></label>
   <button class="button primary full" type="submit">Crear cuenta</button>
 </form>
 <section class="panel">
@@ -17,7 +17,7 @@
   {% for user in users %}<tr>
     <td><b>{{ user.display_name }}</b>{% if user.id == current_user.id %}<small>Tu cuenta</small>{% endif %}</td>
     <td>{{ user.username }}</td>
-    <td><span class="badge {% if user.role == 'admin' %}badge-blue{% else %}badge-green{% endif %}">{% if user.role == 'admin' %}Administrador{% else %}Usuario{% endif %}</span></td>
+    <td><span class="badge {% if user.role == 'admin' %}badge-blue{% else %}badge-green{% endif %}">{% if user.role == 'admin' %}Administrador{% elif user.role == 'customer' %}Cliente{% else %}Vendedor{% endif %}</span></td>
     <td><span class="badge {% if user.active %}badge-green{% else %}badge-gray{% endif %}">{% if user.active %}Activo{% else %}Inactivo{% endif %}</span></td>
     <td>{% if user.id != current_user.id %}<form method="post" action="/usuarios/{{ user.id }}/estado"><button class="link-button" type="submit">{% if user.active %}Desactivar{% else %}Activar{% endif %}</button></form>{% endif %}</td>
   </tr>{% endfor %}
